@@ -326,6 +326,21 @@ body {
     background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
 }
 
+.btn-success {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background: var(--secondary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-success:active {
+    transform: translateY(0);
+}
+
 /* ===== Admin Panel ===== */
 .admin-panel {
     max-width: 800px;
@@ -423,6 +438,85 @@ body {
     background: #fee2e2;
     color: #dc2626;
     border: 1px solid #f87171;
+}
+
+/* ===== Product Table ===== */
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.product-table thead {
+    background: var(--bg-tertiary);
+}
+
+.product-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.product-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.product-table tbody tr {
+    transition: var(--transition-fast);
+}
+
+.product-table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--bg-tertiary);
+    color: var(--primary-color);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.btn-table {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    font-family: inherit;
+}
+
+.btn-table svg {
+    width: 14px;
+    height: 14px;
+}
+
+.btn-edit {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-edit:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 /* ===== Modal ===== */

@@ -133,6 +133,35 @@
 
                         <div id="form-message" class="form-message" style="display: none;"></div>
                     </div>
+
+                    <!-- Product List Table -->
+                    <div class="form-card" style="margin-top: 32px;">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Daftar Produk
+                        </h3>
+                        <div class="table-container">
+                            <table class="product-table" id="admin-product-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Kategori</th>
+                                        <th>Harga</th>
+                                        <th>Stok</th>
+                                        <th>Berat</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-product-list">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; padding: 20px;">Memuat data...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -191,6 +220,13 @@
                         <circle cx="18.5" cy="18.5" r="2.5"></circle>
                     </svg>
                     Hitung Ongkir
+                </button>
+
+                <button class="btn btn-success btn-block" id="checkout-btn" style="display: none; margin-top: 16px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    Beli Sekarang
                 </button>
 
                 <div id="shipping-result" class="shipping-result" style="display: none;">

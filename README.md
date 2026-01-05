@@ -18,12 +18,15 @@ Aplikasi ini mendemonstrasikan konsep **arsitektur terdistribusi** dengan komuni
 - **Cek Ongkir Real-time** - Integrasi langsung dengan Logistics API
 - **Kalkulasi Grand Total** - Otomatis menghitung total harga barang + ongkir
 - **Multi-destination Support** - Pilih kota tujuan dari dropdown dinamis
+- **Checkout / Beli** - Pembelian produk dengan update stok otomatis via PUT API
 
 ### ⚙️ Admin Panel
 - **Tambah Produk** - Form lengkap untuk menambah stok barang baru
+- **Edit Produk** - Update data produk existing dengan PUT API
+- **Tabel Daftar Produk** - Lihat semua produk dalam format tabel
 - **Auto-generate ID** - ID produk dibuat otomatis dengan timestamp
 - **Validasi Input** - Semua field divalidasi sebelum submit
-- **Auto-refresh** - Katalog otomatis ter-update setelah penambahan produk
+- **Auto-refresh** - Katalog otomatis ter-update setelah penambahan/perubahan produk
 
 ### 🎨 UI/UX
 - **Responsive Design** - Optimal di desktop, tablet, dan mobile
@@ -50,6 +53,7 @@ Base URL: https://hans.tugastst.my.id
 **Endpoints:**
 - `GET /products` - Mendapatkan daftar semua produk
 - `POST /products` - Menambahkan produk baru
+- `PUT /products` - Memperbarui produk existing (update stok, edit data)
 
 **Response Format:**
 ```json
@@ -143,18 +147,40 @@ python -m http.server 8000
 5. Pilih kota tujuan dari dropdown
 6. Klik **"Hitung Ongkir"**
 7. Lihat Grand Total (Harga Barang + Ongkir)
+8. Klik **"Beli Sekarang"** untuk checkout
+9. Konfirmasi pembelian
+10. Stok produk akan otomatis berkurang
 
 #### Untuk Admin:
 1. Buka tab **Admin**
-2. Isi form dengan data produk:
-   - Nama Produk
-   - Kategori
-   - Harga (Rupiah)
-   - Stok
-   - Berat (kg)
-3. Klik **"Tambah Produk"**
-4. Produk baru akan muncul di katalog
+2. **Tambah Produk Baru:**
+   - Isi form dengan data produk:
+     - Nama Produk
+     - Kategori
+     - Harga (Rupiah)
+     - Stok
+     - Berat (kg)
+   - Klik **"Tambah Produk"**
+   - Produk baru akan muncul di katalog
+3. **Edit Produk:**
+   - Lihat tabel daftar produk di bawah form
+   - Klik tombol **"Edit"** pada produk yang ingin diubah
+   - Form akan terisi dengan data produk
+   - Ubah data yang diinginkan
+   - Klik **"Simpan Perubahan"**
+   - Produk akan ter-update di katalog
+Checkout Process
+```
+1. User pilih quantity dan kota tujuan
+2. Hitung grand total
+3. Konfirmasi pembelian
+4. Frontend kirim PUT request dengan stock baru:
+   New Stock = Current Stock - Quantity Bought
+5. Backend update database
+6. Frontend refresh tampilan
+```
 
+### 
 ## 🎯 Fitur Kalkulasi
 
 ### Grand Total Calculation

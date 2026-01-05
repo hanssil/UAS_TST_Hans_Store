@@ -20,6 +20,8 @@ let products = [];
 let cities = [];
 let selectedProduct = null;
 let currentQuantity = 1;
+let isEditMode = false;
+let editingProductId = null;
 
 // ===== DOM Elements =====
 const elements = {
@@ -61,7 +63,13 @@ const elements = {
     resultProductTotal: document.getElementById('result-product-total'),
     resultCost: document.getElementById('result-cost'),
     resultEstimate: document.getElementById('result-estimate'),
-    resultGrandTotal: document.getElementById('result-grand-total')
+    resultGrandTotal: document.getElementById('result-grand-total'),
+    
+    // Checkout
+    checkoutBtn: document.getElementById('checkout-btn'),
+    
+    // Admin Product List
+    adminProductList: document.getElementById('admin-product-list')
 };
 
 // ===== Utility Functions =====
@@ -154,6 +162,29 @@ const api = {
             return data;
         } catch (error) {
             console.error('Error adding product:', error);
+            throw error;
+        }
+    },
+    
+    // Update existing product
+    async updateProduct(productData) {
+        try {
+            const response = await fetch(`${API_CONFIG.inventory.baseURL}${API_CONFIG.inventory.endpoints.products}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(productData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error updating product:', error);
             throw error;
         }
     },
@@ -293,7 +324,39 @@ const ui = {
         utils.hide(elements.shippingResult);
         utils.hide(elements.shippingLoading);
         utils.hide(elements.shippingError);
+        utils.hide(elements.checkoutBtn);
         elements.destinationSelect.value = '';
+    },
+    
+    // Render admin product list table
+    renderAdminProductList() {
+        if (!products || products.length === 0) {
+            elements.adminProductList.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: var(--text-secondary);">Belum ada produk</td>
+                </tr>
+            `;
+            return;
+        }
+        
+        elements.adminProductList.innerHTML = products.map(product => `
+            <tr>
+                <td>${product.name}</td>
+                <td><span class="category-badge">${product.category || 'Umum'}</span></td>
+                <td>${utils.formatCurrency(product.price)}</td>
+                <td><span class="stock-badge ${utils.getStockBadgeClass(product.stock)}">${product.stock}</span></td>
+                <td>${product.weight_kg} kg</td>
+                <td>
+                    <button class="btn-table btn-edit" onclick="app.editProduct('${product.id}')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Edit
+                    </button>
+                </td>
+            </tr>
+        `).join('');
     }
 };
 
@@ -310,14 +373,14 @@ const handlers = {
         });
     },
     
-    // Handle add product form submission
+    // Handle add/edit product form submission
     async handleAddProduct(e) {
         e.preventDefault();
         
         // Get form data
         const formData = new FormData(elements.addProductForm);
         const productData = {
-            id: `PROD-${Date.now()}`, // Auto-generate ID
+            id: isEditMode ? editingProductId : `PROD-${Date.now()}`, // Use existing ID or generate new
             name: formData.get('name'),
             category: formData.get('category'),
             price: parseFloat(formData.get('price')),
@@ -333,17 +396,25 @@ const handlers = {
         
         // Disable submit button
         elements.submitBtn.disabled = true;
+        const loadingText = isEditMode ? 'Menyimpan...' : 'Menambahkan...';
         elements.submitBtn.innerHTML = `
             <svg class="spinner" style="width: 18px; height: 18px; border-width: 2px;" viewBox="0 0 24 24"></svg>
-            Menambahkan...
+            ${loadingText}
         `;
         
         try {
-            // Add product via API
-            await api.addProduct(productData);
-            
-            // Show success message
-            utils.showMessage(elements.formMessage, 'Produk berhasil ditambahkan!', 'success');
+            if (isEditMode) {
+                // Update existing product
+                await api.updateProduct(productData);
+                utils.showMessage(elements.formMessage, 'Produk berhasil diperbarui!', 'success');
+                
+                // Reset edit mode
+                app.resetFormToAddMode();
+            } else {
+                // Add new product
+                await api.addProduct(productData);
+                utils.showMessage(elements.formMessage, 'Produk berhasil ditambahkan!', 'success');
+            }
             
             // Reset form
             elements.addProductForm.reset();
@@ -351,24 +422,22 @@ const handlers = {
             // Reload products
             await app.loadProducts();
             
-            // Switch to storefront tab to show new product
-            handlers.switchTab('storefront');
-            
         } catch (error) {
-            utils.showMessage(
-                elements.formMessage, 
-                'Gagal menambahkan produk. Pastikan API tersedia atau periksa koneksi internet.', 
-                'error'
-            );
+            const errorMsg = isEditMode 
+                ? 'Gagal memperbarui produk. Pastikan API tersedia atau periksa koneksi internet.'
+                : 'Gagal menambahkan produk. Pastikan API tersedia atau periksa koneksi internet.';
+            utils.showMessage(elements.formMessage, errorMsg, 'error');
         } finally {
             // Re-enable submit button
             elements.submitBtn.disabled = false;
-            elements.submitBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Tambah Produk
-            `;
+            if (!isEditMode) {
+                elements.submitBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Tambah Produk
+                `;
+            }
         }
     },
     
@@ -419,11 +488,76 @@ const handlers = {
             elements.resultGrandTotal.textContent = utils.formatCurrency(grandTotal);
             
             utils.show(elements.shippingResult);
+            utils.show(elements.checkoutBtn); // Show checkout button after calculation
             
         } catch (error) {
             utils.hide(elements.shippingLoading);
             elements.shippingErrorText.textContent = 'Gagal menghitung ongkir. Periksa koneksi atau coba lagi.';
             utils.show(elements.shippingError);
+        }
+    },
+    
+    // Handle checkout (buy now)
+    async handleCheckout() {
+        if (!selectedProduct || currentQuantity <= 0) {
+            alert('Produk tidak valid!');
+            return;
+        }
+        
+        // Check stock availability
+        if (currentQuantity > selectedProduct.stock) {
+            alert('Stok tidak mencukupi!');
+            return;
+        }
+        
+        // Confirm purchase
+        const productTotal = selectedProduct.price * currentQuantity;
+        const confirmMsg = `Konfirmasi pembelian:\n\nProduk: ${selectedProduct.name}\nJumlah: ${currentQuantity} pcs\nTotal: ${utils.formatCurrency(productTotal)}\n\nLanjutkan?`;
+        
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+        
+        // Disable checkout button
+        elements.checkoutBtn.disabled = true;
+        elements.checkoutBtn.innerHTML = `
+            <svg class="spinner" style="width: 18px; height: 18px; border-width: 2px;" viewBox="0 0 24 24"></svg>
+            Memproses...
+        `;
+        
+        try {
+            // Calculate new stock
+            const newStock = selectedProduct.stock - currentQuantity;
+            
+            // Update product with reduced stock
+            const updatedProduct = {
+                ...selectedProduct,
+                stock: newStock
+            };
+            
+            await api.updateProduct(updatedProduct);
+            
+            // Show success message
+            alert('Pembelian berhasil! Terima kasih telah berbelanja.');
+            
+            // Close modal
+            elements.shippingModal.classList.remove('active');
+            
+            // Reload products to update display
+            await app.loadProducts();
+            
+        } catch (error) {
+            alert('Pembelian gagal. Silakan coba lagi.');
+            console.error('Checkout error:', error);
+        } finally {
+            // Re-enable checkout button
+            elements.checkoutBtn.disabled = false;
+            elements.checkoutBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 6L9 17l-5-5"></path>
+                </svg>
+                Beli Sekarang
+            `;
         }
     },
     
@@ -478,6 +612,9 @@ const app = {
         // Calculate shipping
         elements.calculateShipping.addEventListener('click', handlers.handleCalculateShipping);
         
+        // Checkout
+        elements.checkoutBtn.addEventListener('click', handlers.handleCheckout);
+        
         // Quantity controls
         elements.qtyMinus.addEventListener('click', () => handlers.handleQuantityChange('minus'));
         elements.qtyPlus.addEventListener('click', () => handlers.handleQuantityChange('plus'));
@@ -491,6 +628,7 @@ const app = {
             const response = await api.fetchProducts();
             products = response.data;
             ui.renderProducts();
+            ui.renderAdminProductList(); // Also update admin list
             ui.showProducts();
         } catch (error) {
             ui.showError('Gagal memuat produk. Pastikan API inventory tersedia atau periksa koneksi internet.');
@@ -532,6 +670,51 @@ const app = {
         
         // Show modal
         elements.shippingModal.classList.add('active');
+    },
+    
+    // Edit product
+    editProduct(productId) {
+        const product = products.find(p => p.id === productId);
+        
+        if (!product) {
+            alert('Produk tidak ditemukan!');
+            return;
+        }
+        
+        // Set edit mode
+        isEditMode = true;
+        editingProductId = productId;
+        
+        // Populate form with product data
+        document.getElementById('product-name').value = product.name;
+        document.getElementById('product-category').value = product.category;
+        document.getElementById('product-price').value = product.price;
+        document.getElementById('product-stock').value = product.stock;
+        document.getElementById('product-weight').value = product.weight_kg;
+        
+        // Update button text
+        elements.submitBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Simpan Perubahan
+        `;
+        
+        // Scroll to form
+        elements.addProductForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    
+    // Reset form to add mode
+    resetFormToAddMode() {
+        isEditMode = false;
+        editingProductId = null;
+        
+        elements.submitBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Tambah Produk
+        `;
     }
 };
 
