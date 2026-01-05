@@ -72,6 +72,63 @@ const elements = {
     adminProductList: document.getElementById('admin-product-list')
 };
 
+// ===== Custom Modal Functions =====
+const customModal = {
+    // Custom confirm dialog
+    confirm: (message, title = 'Konfirmasi') => {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirm-modal');
+            const titleEl = document.getElementById('confirm-title');
+            const messageEl = document.getElementById('confirm-message');
+            const okBtn = document.getElementById('confirm-ok');
+            const cancelBtn = document.getElementById('confirm-cancel');
+            
+            titleEl.textContent = title;
+            messageEl.innerHTML = message.replace(/\n/g, '<br>');
+            modal.classList.add('active');
+            
+            const handleOk = () => {
+                modal.classList.remove('active');
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+                resolve(true);
+            };
+            
+            const handleCancel = () => {
+                modal.classList.remove('active');
+                okBtn.removeEventListener('click', handleOk);
+                cancelBtn.removeEventListener('click', handleCancel);
+                resolve(false);
+            };
+            
+            okBtn.addEventListener('click', handleOk);
+            cancelBtn.addEventListener('click', handleCancel);
+        });
+    },
+    
+    // Custom success notification
+    success: (message, title = 'Berhasil!') => {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('success-modal');
+            const titleEl = document.getElementById('success-title');
+            const messageEl = document.getElementById('success-message');
+            const okBtn = document.getElementById('success-ok');
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            modal.classList.add('active');
+            
+            const handleOk = () => {
+                modal.classList.remove('active');
+                okBtn.removeEventListener('click', handleOk);
+                resolve();
+            };
+            
+            okBtn.addEventListener('click', handleOk);
+        });
+    }
+};
+
 // ===== Utility Functions =====
 const utils = {
     // Format currency to Indonesian Rupiah
@@ -500,21 +557,29 @@ const handlers = {
     // Handle checkout (buy now)
     async handleCheckout() {
         if (!selectedProduct || currentQuantity <= 0) {
-            alert('Produk tidak valid!');
+            await customModal.success('Produk tidak valid!', 'Perhatian');
             return;
         }
         
         // Check stock availability
         if (currentQuantity > selectedProduct.stock) {
-            alert('Stok tidak mencukupi!');
+            await customModal.success('Stok tidak mencukupi! Silakan kurangi jumlah pembelian.', 'Stok Habis');
             return;
         }
         
-        // Confirm purchase
+        // Confirm purchase with custom modal
         const productTotal = selectedProduct.price * currentQuantity;
-        const confirmMsg = `Konfirmasi pembelian:\n\nProduk: ${selectedProduct.name}\nJumlah: ${currentQuantity} pcs\nTotal: ${utils.formatCurrency(productTotal)}\n\nLanjutkan?`;
+        const confirmMsg = `
+            <div class="confirm-details">
+                <p><strong>Produk:</strong> ${selectedProduct.name}</p>
+                <p><strong>Jumlah:</strong> ${currentQuantity} pcs</p>
+                <p><strong>Total:</strong> ${utils.formatCurrency(productTotal)}</p>
+            </div>
+            <p style="margin-top: 16px; color: var(--text-secondary);">Apakah Anda yakin ingin melanjutkan pembelian?</p>
+        `;
         
-        if (!confirm(confirmMsg)) {
+        const confirmed = await customModal.confirm(confirmMsg, 'Konfirmasi Pembelian');
+        if (!confirmed) {
             return;
         }
         
@@ -537,8 +602,8 @@ const handlers = {
             
             await api.updateProduct(updatedProduct);
             
-            // Show success message
-            alert('Pembelian berhasil! Terima kasih telah berbelanja.');
+            // Show success message with custom modal
+            await customModal.success('Terima kasih telah berbelanja di Hans Store!', 'Pembelian Berhasil');
             
             // Close modal
             elements.shippingModal.classList.remove('active');
@@ -547,7 +612,7 @@ const handlers = {
             await app.loadProducts();
             
         } catch (error) {
-            alert('Pembelian gagal. Silakan coba lagi.');
+            await customModal.success('Pembelian gagal. Silakan coba lagi atau hubungi admin.', 'Terjadi Kesalahan');
             console.error('Checkout error:', error);
         } finally {
             // Re-enable checkout button
@@ -648,11 +713,11 @@ const app = {
     },
     
     // Open shipping modal
-    openShippingModal(productId) {
+    async openShippingModal(productId) {
         selectedProduct = products.find(p => p.id === productId);
         
         if (!selectedProduct) {
-            alert('Produk tidak ditemukan!');
+            await customModal.success('Produk tidak ditemukan!', 'Perhatian');
             return;
         }
         
@@ -673,11 +738,11 @@ const app = {
     },
     
     // Edit product
-    editProduct(productId) {
+    async editProduct(productId) {
         const product = products.find(p => p.id === productId);
         
         if (!product) {
-            alert('Produk tidak ditemukan!');
+            await customModal.success('Produk tidak ditemukan!', 'Perhatian');
             return;
         }
         

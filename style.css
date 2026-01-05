@@ -746,6 +746,150 @@ body {
     font-weight: 700;
 }
 
+/* ===== Custom Confirmation Modal ===== */
+.confirm-modal-content {
+    max-width: 450px;
+    text-align: center;
+    animation: bounceIn 0.4s ease-out;
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(-50px);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.confirm-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+}
+
+.confirm-icon svg {
+    width: 48px;
+    height: 48px;
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 20px rgba(251, 191, 36, 0);
+    }
+}
+
+.confirm-modal-content h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.confirm-message {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    padding: 0 20px;
+}
+
+.confirm-details {
+    background: var(--bg-secondary);
+    padding: 16px;
+    border-radius: var(--border-radius);
+    margin: 16px 0;
+    text-align: left;
+}
+
+.confirm-details p {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    color: var(--text-primary);
+}
+
+.confirm-details strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.confirm-actions .btn {
+    flex: 1;
+}
+
+/* ===== Custom Success Modal ===== */
+.success-modal-content {
+    max-width: 400px;
+    text-align: center;
+    animation: bounceIn 0.4s ease-out;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: successPulse 1.5s infinite;
+}
+
+.success-icon svg {
+    width: 48px;
+    height: 48px;
+    color: white;
+    stroke-width: 3;
+}
+
+@keyframes successPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
+        transform: scale(1.05);
+    }
+}
+
+.success-modal-content h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--secondary-dark);
+    margin-bottom: 12px;
+}
+
+.success-message {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    padding: 0 20px;
+}
+
 /* ===== Loading ===== */
 .loading {
     text-align: center;
